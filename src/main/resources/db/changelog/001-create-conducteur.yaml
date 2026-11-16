@@ -1,0 +1,48 @@
+
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-conducteur
+      author: zakaria
+      changes:
+        - createTable:
+            tableName: conducteurs
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: nom
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: prenom
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: email
+                  type: VARCHAR(150)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: telephone
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: numero_permis
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+                    unique: true
