@@ -21,4 +21,10 @@ public class ConducteurController  {
     public ConducteurResponseDTO creerConducteur(@Valid @RequestBody ConducteurRequestDTO dto){
         return conducteurService.creerConducteur(dto);
     }
+
+    @GetMapping("/{id}")
+    public ConducteurResponseDTO trouverParId(@PathVariable Long id){
+        return conducteurService.findById(id);
+    }
+
 }
