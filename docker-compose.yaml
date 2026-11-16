@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: covoiturage_postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: covoiturage_db
+      POSTGRES_USER: covoiturage_user
+      POSTGRES_PASSWORD: covoiturage_password
+
+    ports:
+      - "5434:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U covoiturage_user -d covoiturage_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
