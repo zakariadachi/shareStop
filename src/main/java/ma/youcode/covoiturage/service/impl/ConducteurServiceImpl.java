@@ -31,4 +31,10 @@ public class ConducteurServiceImpl implements ConducteurService {
 
         return  conducteurMapper.toResponseDTO(conducteurEnregistre);
     }
+
+    @Override
+    public ConducteurResponseDTO findById(Long id) {
+        Conducteur conducteur = conducteurRepository.findById(id).orElseThrow(()->new RuntimeException("Conducteur introuvable"));
+        return conducteurMapper.toResponseDTO(conducteur);
+    }
 }
