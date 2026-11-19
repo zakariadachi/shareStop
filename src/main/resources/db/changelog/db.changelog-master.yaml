@@ -1,3 +1,18 @@
 databaseChangeLog:
   - include:
       file: db/changelog/001-create-conducteur.yaml
+
+  - include:
+      file: db/changelog/002-create-vehicule.yaml
+
+  - include:
+      file: db/changelog/003-create-passager.yaml
+
+  - include:
+      file: db/changelog/004-create-trajet.yaml
+
+  - include:
+      file: db/changelog/005-create-point-arret.yaml
+
+  - include:
+      file: db/changelog/006-create-reservation.yaml
