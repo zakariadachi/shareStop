@@ -4,10 +4,13 @@ package ma.youcode.covoiturage.service.impl;
 import ma.youcode.covoiturage.dto.ConducteurRequestDTO;
 import ma.youcode.covoiturage.dto.ConducteurResponseDTO;
 import ma.youcode.covoiturage.entity.Conducteur;
+import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.mapper.ConducteurMapper;
 import ma.youcode.covoiturage.repository.ConducteurRepository;
 import ma.youcode.covoiturage.service.ConducteurService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class ConducteurServiceImpl implements ConducteurService {
@@ -33,8 +36,36 @@ public class ConducteurServiceImpl implements ConducteurService {
     }
 
     @Override
-    public ConducteurResponseDTO findById(Long id) {
-        Conducteur conducteur = conducteurRepository.findById(id).orElseThrow(()->new RuntimeException("Conducteur introuvable"));
+    public ConducteurResponseDTO findById(Long id) throws ResourceNotFoundException {
+        Conducteur conducteur = conducteurRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("Conducteur introuvable"));
         return conducteurMapper.toResponseDTO(conducteur);
+    }
+
+    @Override
+    public List<ConducteurResponseDTO> findAll() {
+        return conducteurRepository.findAll()
+                .stream()
+                .map(conducteurMapper::toResponseDTO)
+                .toList();
+    }
+
+    @Override
+    public ConducteurResponseDTO modifierConducteur(Long id, ConducteurRequestDTO dto) {
+        Conducteur conducteur = conducteurRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable"));
+
+        conducteurMapper.updateEntity(dto, conducteur);
+
+        Conducteur conducteurModifie = conducteurRepository.save(conducteur);
+
+        return conducteurMapper.toResponseDTO(conducteurModifie);
+    }
+
+    @Override
+    public void supprimerConducteur(Long id) {
+        Conducteur conducteur = conducteurRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable"));
+
+        conducteurRepository.delete(conducteur);
     }
 }
