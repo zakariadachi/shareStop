@@ -1,0 +1,60 @@
+
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-vehicule
+      author: zakaria
+      changes:
+        - createTable:
+            tableName: vehicules
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: marque
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: modele
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: immatriculation
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: couleur
+                  type: VARCHAR(50)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: capacite_maximale
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: conducteur_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: vehicules
+            baseColumnNames: conducteur_id
+            referencedTableName: conducteurs
+            referencedColumnNames: id
+            constraintName: fk_vehicules_conducteurs
