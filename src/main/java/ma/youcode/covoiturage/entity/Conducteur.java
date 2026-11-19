@@ -1,9 +1,10 @@
-
 package ma.youcode.covoiturage.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -29,4 +30,7 @@ public class Conducteur {
 
     @Column(name = "numero_permis", nullable = false, unique = true, length = 50)
     private String numeroPermis;
+
+    @OneToMany(mappedBy = "conducteur")
+    private List<Vehicule> vehicules;
 }
