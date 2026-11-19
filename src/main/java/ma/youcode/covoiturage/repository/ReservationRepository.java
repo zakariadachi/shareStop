@@ -25,8 +25,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             WHERE r.trajet.id = :trajetId
             AND r.statut = :statut
             """)
-    Integer compterPlacesReservees(
-            @Param("trajetId") Long trajetId,
-            @Param("statut") StatutReservation statut
-    );
+    Long compterPlacesReservees(@Param("trajetId") Long trajetId, @Param("statut") StatutReservation statut);
 }
