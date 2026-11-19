@@ -1,0 +1,54 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-trajet
+      author: zakaria
+      changes:
+        - createTable:
+            tableName: trajets
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: places_proposees
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: statut
+                  type: VARCHAR(20)
+                  defaultValue: PUBLIE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: conducteur_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: vehicule_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: trajets
+            baseColumnNames: conducteur_id
+            referencedTableName: conducteurs
+            referencedColumnNames: id
+            constraintName: fk_trajets_conducteur
+
+        - addForeignKeyConstraint:
+            baseTableName: trajets
+            baseColumnNames: vehicule_id
+            referencedTableName: vehicules
+            referencedColumnNames: id
+            constraintName: fk_trajets_vehicule
