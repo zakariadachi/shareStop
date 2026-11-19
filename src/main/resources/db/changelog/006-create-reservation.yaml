@@ -1,0 +1,93 @@
+
+databaseChangeLog:
+  - changeSet:
+      id: 006-create-reservation
+      author: zakaria
+      changes:
+        - createTable:
+            tableName: reservations
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+
+              - column:
+                  name: nombre_places
+                  type: INT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: montant_total
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: date_reservation
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: statut
+                  type: VARCHAR(20)
+                  defaultValue: CONFIRMEE
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: passager_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: trajet_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: point_depart_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: point_arrivee_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - addForeignKeyConstraint:
+            baseTableName: reservations
+            baseColumnNames: passager_id
+            referencedTableName: passagers
+            referencedColumnNames: id
+            constraintName: fk_reservation_passager
+
+        - addForeignKeyConstraint:
+            baseTableName: reservations
+            baseColumnNames: trajet_id
+            referencedTableName: trajets
+            referencedColumnNames: id
+            constraintName: fk_reservation_trajet
+
+        - addForeignKeyConstraint:
+            baseTableName: reservations
+            baseColumnNames: point_depart_id
+            referencedTableName: points_arret
+            referencedColumnNames: id
+            constraintName: fk_reservation_point_depart
+
+        - addForeignKeyConstraint:
+            baseTableName: reservations
+            baseColumnNames: point_arrivee_id
+            referencedTableName: points_arret
+            referencedColumnNames: id
+            constraintName: fk_reservation_point_arrivee
