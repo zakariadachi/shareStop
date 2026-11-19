@@ -6,6 +6,7 @@ import ma.youcode.covoiturage.dto.ConducteurResponseDTO;
 import ma.youcode.covoiturage.entity.Conducteur;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface ConducteurMapper {
@@ -13,4 +14,6 @@ public interface ConducteurMapper {
     Conducteur toEntity(ConducteurRequestDTO dto);
 
     ConducteurResponseDTO toResponseDTO(Conducteur conducteur);
+
+    void updateEntity(ConducteurRequestDTO dto, @MappingTarget Conducteur conducteur);
 }
