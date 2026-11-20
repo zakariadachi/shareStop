@@ -15,7 +15,5 @@ public interface PassagerService {
 
     PassagerResponseDTO modifierPassager(Long id, PassagerRequestDTO dto);
 
-    void supprimerPassager(Long id);
-
     PassagerResponseDTO findByEmail(String email);
 }
