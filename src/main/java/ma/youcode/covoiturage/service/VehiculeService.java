@@ -10,11 +10,11 @@ public interface VehiculeService {
 
     VehiculeResponseDTO creerVehicule(VehiculeRequestDTO dto);
 
-    List<VehiculeResponseDTO> findAll();
-
     VehiculeResponseDTO findById(Long id);
 
     VehiculeResponseDTO modifierVehicule(Long id, VehiculeRequestDTO dto);
 
     void supprimerVehicule(Long id);
+
+    List<VehiculeResponseDTO> findByConducteurId(Long conducteurId);
 }
