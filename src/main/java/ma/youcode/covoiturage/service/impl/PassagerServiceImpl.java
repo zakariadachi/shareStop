@@ -1,5 +1,6 @@
 package ma.youcode.covoiturage.service.impl;
 
+import lombok.extern.slf4j.Slf4j;
 import ma.youcode.covoiturage.dto.PassagerRequestDTO;
 import ma.youcode.covoiturage.dto.PassagerResponseDTO;
 import ma.youcode.covoiturage.entity.Passager;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @Transactional
 public class PassagerServiceImpl implements PassagerService {
@@ -29,8 +31,10 @@ public class PassagerServiceImpl implements PassagerService {
 
     @Override
     public PassagerResponseDTO creerPassager(PassagerRequestDTO dto) {
+        log.info("Création d'un passager avec l'email {}", dto.email());
         Passager passager = passagerMapper.toEntity(dto);
         Passager enregistre = passagerRepository.save(passager);
+        log.info("Passager ID {} créé avec succès", enregistre.getId());
 
         return passagerMapper.toResponseDTO(enregistre);
     }
@@ -39,7 +43,10 @@ public class PassagerServiceImpl implements PassagerService {
     @Transactional(readOnly = true)
     public PassagerResponseDTO findById(Long id) {
         Passager passager = passagerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Passager introuvable"));
+                .orElseThrow(() -> {
+                    log.warn("Passager introuvable avec l'ID {}", id);
+                    return new ResourceNotFoundException("Passager introuvable");
+                });
 
         return passagerMapper.toResponseDTO(passager);
     }
@@ -56,20 +63,16 @@ public class PassagerServiceImpl implements PassagerService {
     @Override
     public PassagerResponseDTO modifierPassager(Long id, PassagerRequestDTO dto) {
         Passager passager = passagerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Passager introuvable"));
+                .orElseThrow(() -> {
+                    log.warn("Modification impossible : passager ID {} introuvable", id);
+                    return new ResourceNotFoundException("Passager introuvable");
+                });
 
         passagerMapper.updateEntity(dto, passager);
         Passager modifie = passagerRepository.save(passager);
+        log.info("Passager ID {} modifié avec succès", id);
 
         return passagerMapper.toResponseDTO(modifie);
-    }
-
-    @Override
-    public void supprimerPassager(Long id) {
-        Passager passager = passagerRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Passager introuvable"));
-
-        passagerRepository.delete(passager);
     }
 
     @Override
