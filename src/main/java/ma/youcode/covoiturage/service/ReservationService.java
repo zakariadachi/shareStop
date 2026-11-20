@@ -14,5 +14,7 @@ public interface ReservationService {
 
     List<ReservationResponseDTO> trouverParPassager(Long passagerId);
 
+    List<ReservationResponseDTO> trouverParConducteur(Long conducteurId);
+
     void annulerReservation(Long reservationId, Long passagerId);
 }
