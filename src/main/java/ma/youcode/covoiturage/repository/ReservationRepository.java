@@ -19,6 +19,12 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     List<Reservation> findByPassagerId(Long passagerId);
 
+    List<Reservation> findByTrajetIdAndStatut(Long trajetId, StatutReservation statut);
+
+    List<Reservation> findByTrajetConducteurId(Long conducteurId);
+
+    List<Reservation> findByTrajetId(Long trajetId);
+
     @Query("""
             SELECT COALESCE(SUM(r.nombrePlaces), 0)
             FROM Reservation r
