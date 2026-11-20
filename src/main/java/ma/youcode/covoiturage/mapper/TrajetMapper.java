@@ -1,4 +1,3 @@
-
 package ma.youcode.covoiturage.mapper;
 
 import ma.youcode.covoiturage.dto.TrajetRequestDTO;
@@ -20,7 +19,20 @@ public interface TrajetMapper {
     @Mapping(target = "pointsArret", ignore = true)
     Trajet toEntity(TrajetRequestDTO dto);
 
+    @Mapping(target = "conducteurId", source = "trajet.conducteur.id")
+    @Mapping(target = "vehiculeId", source = "trajet.vehicule.id")
+    @Mapping(target = "placesRestantes", source = "placesRestantes")
+    @Mapping(target = "id", source = "trajet.id")
+    @Mapping(target = "placesProposees", source = "trajet.placesProposees")
+    @Mapping(target = "statut", source = "trajet.statut")
+    @Mapping(target = "pointsArret", source = "trajet.pointsArret")
+    @Mapping(target = "villeDepart", source = "trajet.villeDepart")
+    @Mapping(target = "villeArrivee", source = "trajet.villeArrivee")
+    @Mapping(target = "dateDepart", source = "trajet.dateDepart")
+    TrajetResponseDTO toResponseDTO(Trajet trajet, Long placesRestantes);
+
     @Mapping(target = "conducteurId", source = "conducteur.id")
     @Mapping(target = "vehiculeId", source = "vehicule.id")
+    @Mapping(target = "placesRestantes", expression = "java(trajet.getPlacesProposees() != null ? Long.valueOf(trajet.getPlacesProposees()) : 0L)")
     TrajetResponseDTO toResponseDTO(Trajet trajet);
 }
