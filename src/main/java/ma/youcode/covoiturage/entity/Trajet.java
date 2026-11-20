@@ -3,6 +3,7 @@ package ma.youcode.covoiturage.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,4 +35,22 @@ public class Trajet {
     @OneToMany(mappedBy = "trajet", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("ordre ASC")
     private List<PointArret> pointsArret = new ArrayList<>();
+
+    @Transient
+    public String getVilleDepart() {
+        if (pointsArret == null || pointsArret.isEmpty()) return null;
+        return pointsArret.get(0).getVille();
+    }
+
+    @Transient
+    public String getVilleArrivee() {
+        if (pointsArret == null || pointsArret.isEmpty()) return null;
+        return pointsArret.get(pointsArret.size() - 1).getVille();
+    }
+
+    @Transient
+    public LocalDateTime getDateDepart() {
+        if (pointsArret == null || pointsArret.isEmpty()) return null;
+        return pointsArret.get(0).getHeurePassage();
+    }
 }
