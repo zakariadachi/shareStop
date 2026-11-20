@@ -1,41 +1,51 @@
 package ma.youcode.covoiturage.service.impl;
 
-import ma.youcode.covoiturage.exception.ForbiddenException;
-import org.springframework.transaction.annotation.Transactional;
-import ma.youcode.covoiturage.dto.PointArretRequestDTO;
-import ma.youcode.covoiturage.dto.TrajetRequestDTO;
-import ma.youcode.covoiturage.dto.TrajetResponseDTO;
+import lombok.extern.slf4j.Slf4j;
+import ma.youcode.covoiturage.dto.*;
 import ma.youcode.covoiturage.entity.*;
+import ma.youcode.covoiturage.exception.BadRequestException;
 import ma.youcode.covoiturage.exception.BusinessRuleException;
+import ma.youcode.covoiturage.exception.ForbiddenException;
 import ma.youcode.covoiturage.exception.ResourceNotFoundException;
 import ma.youcode.covoiturage.mapper.PointArretMapper;
 import ma.youcode.covoiturage.mapper.TrajetMapper;
 import ma.youcode.covoiturage.repository.ConducteurRepository;
+import ma.youcode.covoiturage.repository.ReservationRepository;
 import ma.youcode.covoiturage.repository.TrajetRepository;
 import ma.youcode.covoiturage.repository.VehiculeRepository;
 import ma.youcode.covoiturage.service.TrajetService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ma.youcode.covoiturage.entity.StatutTrajet;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
+@Slf4j
 @Service
 public class TrajetServiceImpl implements TrajetService {
 
     private final TrajetRepository trajetRepository;
     private final ConducteurRepository conducteurRepository;
     private final VehiculeRepository vehiculeRepository;
-
+    private final ReservationRepository reservationRepository;
     private final TrajetMapper trajetMapper;
     private final PointArretMapper pointArretMapper;
 
-
-    public TrajetServiceImpl(TrajetRepository trajetRepository, ConducteurRepository conducteurRepository, VehiculeRepository vehiculeRepository, TrajetMapper trajetMapper, PointArretMapper pointArretMapper) {
+    public TrajetServiceImpl(
+            TrajetRepository trajetRepository,
+            ConducteurRepository conducteurRepository,
+            VehiculeRepository vehiculeRepository,
+            ReservationRepository reservationRepository,
+            TrajetMapper trajetMapper,
+            PointArretMapper pointArretMapper
+    ) {
         this.trajetRepository = trajetRepository;
         this.conducteurRepository = conducteurRepository;
         this.vehiculeRepository = vehiculeRepository;
+        this.reservationRepository = reservationRepository;
         this.trajetMapper = trajetMapper;
         this.pointArretMapper = pointArretMapper;
     }
@@ -43,22 +53,28 @@ public class TrajetServiceImpl implements TrajetService {
     @Override
     @Transactional
     public TrajetResponseDTO creerTrajet(TrajetRequestDTO dto) {
-        Conducteur conducteur = conducteurRepository.findById(dto.conducteurId()).orElseThrow(()->new ResourceNotFoundException("Conducteur introuvable"));
+        log.info("Publication d'un nouveau trajet par le conducteur ID {}", dto.conducteurId());
+        Conducteur conducteur = conducteurRepository.findById(dto.conducteurId())
+                .orElseThrow(() -> new ResourceNotFoundException("Conducteur introuvable"));
 
-        Vehicule vehicule = vehiculeRepository.findById(dto.vehiculeId()).orElseThrow(()->new ResourceNotFoundException("Vehicule introuvable"));
+        Vehicule vehicule = vehiculeRepository.findById(dto.vehiculeId())
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicule introuvable"));
 
-        if(!vehicule.getConducteur().getId().equals(conducteur.getId())){
-            throw new BusinessRuleException("ce vehicule n'appartient pas a ce conducteur");
+        if (!vehicule.getConducteur().getId().equals(conducteur.getId())) {
+            log.warn("Publication refusée : le véhicule ID {} n'appartient pas au conducteur ID {}", dto.vehiculeId(), dto.conducteurId());
+            throw new ForbiddenException("Ce véhicule n'appartient pas à ce conducteur");
         }
 
-        if(dto.placesProposees() > vehicule.getCapaciteMaximale()){
-            throw new BusinessRuleException("Le nombre de places proposé depasse la capacité de vehicule");
+        if (dto.placesProposees() > vehicule.getCapaciteMaximale()) {
+            log.warn("Publication refusée : places proposées ({}) > capacité ({})", dto.placesProposees(), vehicule.getCapaciteMaximale());
+            throw new BadRequestException("Le nombre de places proposé dépasse la capacité du véhicule");
         }
 
         List<PointArretRequestDTO> points = dto.pointsArret();
 
-        if (points == null || points.size()<2){
-            throw new BusinessRuleException("Un trajet doit contenir au moins deux points d'arret");
+        if (points == null || points.size() < 2) {
+            log.warn("Publication refusée : moins de 2 points d'arrêt");
+            throw new BadRequestException("Un trajet doit contenir au moins deux points d'arrêt");
         }
 
         List<PointArretRequestDTO> pointsTries = points.stream().sorted(Comparator.comparingInt(PointArretRequestDTO::ordre)).toList();
@@ -118,20 +134,21 @@ public class TrajetServiceImpl implements TrajetService {
 
         Trajet trajetEnregistre = trajetRepository.save(trajet);
 
-        return trajetMapper.toResponseDTO(trajetEnregistre);
+        Long placesRestantes = trajetEnregistre.getPlacesProposees() != null
+                ? Long.valueOf(trajetEnregistre.getPlacesProposees())
+                : (dto.placesProposees() != null ? Long.valueOf(dto.placesProposees()) : 0L);
+        return trajetMapper.toResponseDTO(trajetEnregistre, placesRestantes);
     }
 
     @Override
     @Transactional(readOnly = true)
     public TrajetResponseDTO trouverParId(Long id) {
-        Trajet trajet = trajetRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable"));
-        return trajetMapper.toResponseDTO(trajet);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TrajetResponseDTO> trouverTous() {
-        return trajetRepository.findAll().stream().map(trajetMapper::toResponseDTO).toList();
+        Trajet trajet = trajetRepository.findWithDetailsById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Trajet introuvable"));
+        Long placesReservees = reservationRepository.compterPlacesReservees(id, StatutReservation.CONFIRMEE);
+        Long placesProposees = trajet.getPlacesProposees() != null ? Long.valueOf(trajet.getPlacesProposees()) : 0L;
+        Long placesRestantes = placesProposees - placesReservees;
+        return trajetMapper.toResponseDTO(trajet, placesRestantes);
     }
 
     @Override
@@ -174,5 +191,32 @@ public class TrajetServiceImpl implements TrajetService {
 
         trajet.setStatut(StatutTrajet.ANNULE);
         trajetRepository.save(trajet);
+
+        List<Reservation> reservations = reservationRepository.findByTrajetIdAndStatut(trajetId, StatutReservation.CONFIRMEE);
+        for (Reservation res : reservations) {
+            res.setStatut(StatutReservation.ANNULEE);
+        }
+        reservationRepository.saveAll(reservations);
+        log.info("Trajet ID {} et ses {} réservation(s) confirmée(s) annulés en bloc", trajetId, reservations.size());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<TrajetSearchProjection> rechercherTrajets(TrajetSearchRequestDTO dto, Pageable pageable) {
+        LocalDateTime debutJournee = dto.date().atStartOfDay();
+
+        LocalDateTime finJournee = dto.date().plusDays(1).atStartOfDay();
+
+        return trajetRepository.rechercherTrajets(
+                dto.villeDepart(),
+                dto.villeArrivee(),
+                debutJournee,
+                finJournee,
+                dto.nombrePlaces(),
+                dto.prixMax(),
+                StatutTrajet.PUBLIE,
+                StatutReservation.CONFIRMEE,
+                pageable
+        );
     }
 }
